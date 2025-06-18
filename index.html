@@ -4,7 +4,87 @@
   <meta charset="UTF-8">
   <title>Tetris</title>
   <style>
-    /* ... (tu CSS sin cambios) ... */
+    /* [Misma hoja de estilos que ya tenías] */
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; height: 100vh;
+      font-family: sans-serif; background-color: #eee;
+    }
+    body {
+      display: grid;
+      grid-template-columns: 200px 1fr 160px 220px;
+      gap: 10px; padding: 10px; overflow: hidden;
+    }
+    #leftPanel, #nextPiecePanel, #rightPanel {
+      background-color: #f4f4f4;
+      padding: 10px;
+      border-radius: 8px;
+      height: fit-content;
+    }
+    #centerPanel {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: flex-start;
+    }
+    #tetris {
+      display: grid;
+      grid-template-columns: repeat(10, 30px);
+      grid-template-rows: repeat(18, 30px);
+      border: 2px solid #333;
+      background-color: #2c3e50;
+    }
+    .cell {
+      width: 30px; height: 30px;
+      border: 1px solid #34495e;
+    }
+    .I { background-color: #3498db; }
+    .J { background-color: #2980b9; }
+    .L { background-color: #e67e22; }
+    .O { background-color: #f1c40f; }
+    .S { background-color: #2ecc71; }
+    .T { background-color: #9b59b6; }
+    .Z { background-color: #e74c3c; }
+    #nextPieceContainer {
+      display: grid;
+      grid-template-columns: repeat(4, 30px);
+      grid-template-rows: repeat(4, 30px);
+      gap: 1px;
+      margin-top: 10px;
+      background-color: #2c3e50;
+    }
+    .preview-cell {
+      width: 30px; height: 30px;
+      border: 1px solid #34495e;
+    }
+    button {
+      margin: 10px 5px;
+      padding: 10px 15px;
+      cursor: pointer;
+      border-radius: 5px;
+      border: none;
+      background-color: #3498db;
+      color: white; font-size: 16px;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    h1, h2, h3, p {
+      margin: 5px 0; text-align: center;
+    }
+    ul { list-style: none; padding: 0; }
+    li {
+      margin-bottom: 8px; font-size: 16px;
+      padding: 4px; background-color: #e0e0e0;
+      border-radius: 4px;
+    }
+    li:nth-child(1) {
+      font-weight: bold; background-color: #f1c40f;
+    }
+    li:nth-child(2) {
+      font-weight: bold; background-color: #bdc3c7;
+    }
+    li:nth-child(3) {
+      font-weight: bold; background-color: #cd7f32;
+    }
   </style>
 </head>
 <body>
@@ -45,11 +125,9 @@
   </audio>
 
   <script type="module">
-    // IMPORTANTE: Cambia las rutas de importación para usar las CDN de Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // Tu configuración de Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAV8mEuG_0wNNDI9TJWRkZQQbASuQGWaIQ",
       authDomain: "tetris-43965.firebaseapp.com",
@@ -60,11 +138,11 @@
       measurementId: "G-VJ9KVXW66H"
     };
 
-    // Initialize Firebase
+    // Inicializa Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Definir las constantes globales para los elementos del DOM (fuera de DOMContentLoaded)
+    // Definir las constantes globales para los elementos del DOM
     const boardElement = document.getElementById('tetris');
     const scoreElement = document.getElementById('score');
     const nextPieceContainer = document.getElementById('nextPieceContainer');
@@ -73,11 +151,8 @@
     const scoreListElement = document.getElementById('scoreList');
     const startGameButton = document.getElementById('startGameButton');
 
-    // ========================================================
-    // AÑADE ESTAS LÍNEAS PARA DEPURAR (manténlas por ahora)
     console.log("Referencia a startGameButton:", startGameButton);
     console.log("Referencia a musicButton:", musicButton);
-    // ========================================================
 
     const COLS = 10;
     const ROWS = 18;
@@ -88,7 +163,7 @@
         'O': { shape: [[1, 1], [1, 1]], color: 'O' },
         'S': { shape: [[0, 1, 1], [1, 1, 0]], color: 'S' },
         'T': { shape: [[0, 1, 0], [1, 1, 1]], color: 'T' },
-        'Z': { shape: [[1, 1, 0], [0, 1, 1]], color: 'Z' }
+        'Z': { shape: [[1, 1, 0], [0, 1, 1]] , color: 'Z'}
     };
     const PIECE_NAMES = 'IJLOSTZ';
 
@@ -101,12 +176,13 @@
 
     function createBoard() {
         board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
-        boardElement.innerHTML = '';
+        boardElement.innerHTML = ''; // Limpiar el tablero existente
         for (let i = 0; i < ROWS * COLS; i++) {
             const cell = document.createElement('div');
             cell.classList.add('cell');
             boardElement.appendChild(cell);
         }
+        console.log("Tablero creado con éxito."); // Añadir log
     }
 
     function newPiece() {
@@ -123,8 +199,10 @@
         for (let row = 0; row < ROWS; row++) {
             for (let col = 0; col < COLS; col++) {
                 const idx = row * COLS + col;
-                cells[idx].className = 'cell';
-                if (board[row][col]) cells[idx].classList.add(board[row][col]);
+                if (cells[idx]) { // Asegurarse de que la celda exista
+                    cells[idx].className = 'cell';
+                    if (board[row][col]) cells[idx].classList.add(board[row][col]);
+                }
             }
         }
 
@@ -160,7 +238,9 @@
             row.forEach((v, x) => {
                 if (v) {
                     const idx = (y + offsetY) * 4 + (x + offsetX);
-                    nextPieceContainer.children[idx].classList.add(color);
+                    if (nextPieceContainer.children[idx]) { // Asegurarse de que la celda exista
+                        nextPieceContainer.children[idx].classList.add(color);
+                    }
                 }
             });
         });
@@ -272,7 +352,8 @@
             console.log("Puntuación guardada en Firebase!");
             updateHighScoresDisplayFirebase();
         } catch (e) {
-            console.error("Error al añadir la puntuación: ", e);
+            console.error("Error al añadir la puntuación a Firebase: ", e);
+            alert("No se pudo guardar la puntuación. Verifica tu conexión o las reglas de Firebase.");
         }
     }
 
@@ -291,8 +372,12 @@
                 li.textContent = `${s.name}: ${s.score}`;
                 scoreListElement.appendChild(li);
             });
+            console.log("Puntuaciones de Firebase actualizadas.");
         } catch (e) {
-            console.error("Error al obtener las puntuaciones: ", e);
+            console.error("Error al obtener las puntuaciones de Firebase: ", e);
+            const li = document.createElement('li');
+            li.textContent = "Error al cargar puntuaciones.";
+            scoreListElement.appendChild(li);
         }
     }
 
@@ -311,7 +396,7 @@
         music.play().then(() => {
             musicButton.textContent = '🎵 Música (On)';
         }).catch(err => {
-            console.log("No se pudo reproducir la música:", err);
+            console.log("No se pudo reproducir la música (es normal si no hubo interacción previa):", err);
         });
     };
 
@@ -325,21 +410,29 @@
         }
     };
 
+    // Asegurarse de que el DOM esté cargado antes de interactuar con él
     document.addEventListener('DOMContentLoaded', () => {
         console.log("DOMContentLoaded disparado.");
 
+        // Inicializar el tablero siempre, independientemente de Firebase
+        createBoard();
+
+        // Adjuntar listeners a los botones
         if (startGameButton) {
             startGameButton.addEventListener('click', startGame);
+            console.log("Evento 'click' añadido a startGameButton.");
         } else {
             console.error("ERROR: El botón 'Empezar' (startGameButton) NO SE ENCONTRÓ en el DOM.");
         }
 
         if (musicButton) {
             musicButton.addEventListener('click', toggleMusic);
+            console.log("Evento 'click' añadido a musicButton.");
         } else {
             console.error("ERROR: El botón 'Música' (musicButton) NO SE ENCONTRÓ en el DOM.");
         }
 
+        // Adjuntar listener para teclas
         document.addEventListener('keydown', (e) => {
             if (isGameOver) return;
             if (e.key === 'ArrowLeft') movePiece(-1, 0);
@@ -348,7 +441,7 @@
             if (e.key === 'ArrowUp') rotatePiece();
         });
 
-        createBoard();
+        // Intentar cargar las puntuaciones, con manejo de errores
         updateHighScoresDisplayFirebase();
     });
   </script>
