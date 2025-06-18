@@ -4,87 +4,7 @@
   <meta charset="UTF-8">
   <title>Tetris</title>
   <style>
-    /* [Misma hoja de estilos que ya tenías] */
-    * { box-sizing: border-box; }
-    html, body {
-      margin: 0; padding: 0; height: 100vh;
-      font-family: sans-serif; background-color: #eee;
-    }
-    body {
-      display: grid;
-      grid-template-columns: 200px 1fr 160px 220px;
-      gap: 10px; padding: 10px; overflow: hidden;
-    }
-    #leftPanel, #nextPiecePanel, #rightPanel {
-      background-color: #f4f4f4;
-      padding: 10px;
-      border-radius: 8px;
-      height: fit-content;
-    }
-    #centerPanel {
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: flex-start;
-    }
-    #tetris {
-      display: grid;
-      grid-template-columns: repeat(10, 30px);
-      grid-template-rows: repeat(18, 30px);
-      border: 2px solid #333;
-      background-color: #2c3e50;
-    }
-    .cell {
-      width: 30px; height: 30px;
-      border: 1px solid #34495e;
-    }
-    .I { background-color: #3498db; }
-    .J { background-color: #2980b9; }
-    .L { background-color: #e67e22; }
-    .O { background-color: #f1c40f; }
-    .S { background-color: #2ecc71; }
-    .T { background-color: #9b59b6; }
-    .Z { background-color: #e74c3c; }
-    #nextPieceContainer {
-      display: grid;
-      grid-template-columns: repeat(4, 30px);
-      grid-template-rows: repeat(4, 30px);
-      gap: 1px;
-      margin-top: 10px;
-      background-color: #2c3e50;
-    }
-    .preview-cell {
-      width: 30px; height: 30px;
-      border: 1px solid #34495e;
-    }
-    button {
-      margin: 10px 5px;
-      padding: 10px 15px;
-      cursor: pointer;
-      border-radius: 5px;
-      border: none;
-      background-color: #3498db;
-      color: white; font-size: 16px;
-    }
-    button:hover {
-      background-color: #2980b9;
-    }
-    h1, h2, h3, p {
-      margin: 5px 0; text-align: center;
-    }
-    ul { list-style: none; padding: 0; }
-    li {
-      margin-bottom: 8px; font-size: 16px;
-      padding: 4px; background-color: #e0e0e0;
-      border-radius: 4px;
-    }
-    li:nth-child(1) {
-      font-weight: bold; background-color: #f1c40f;
-    }
-    li:nth-child(2) {
-      font-weight: bold; background-color: #bdc3c7;
-    }
-    li:nth-child(3) {
-      font-weight: bold; background-color: #cd7f32;
-    }
+    /* ... (tu CSS sin cambios) ... */
   </style>
 </head>
 <body>
@@ -125,11 +45,11 @@
   </audio>
 
   <script type="module">
-    // Import the functions you need from the SDKs you need
-    import { initializeApp } from "firebase/app";
-    import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs } from "firebase/firestore";
+    // IMPORTANTE: Cambia las rutas de importación para usar las CDN de Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // Your web app's Firebase configuration
+    // Tu configuración de Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAV8mEuG_0wNNDI9TJWRkZQQbASuQGWaIQ",
       authDomain: "tetris-43965.firebaseapp.com",
@@ -144,15 +64,20 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Definir las constantes globales para los elementos del DOM fuera del DOMContentLoaded
-    // para que sean accesibles en todo el script del módulo una vez inicializados.
+    // Definir las constantes globales para los elementos del DOM (fuera de DOMContentLoaded)
     const boardElement = document.getElementById('tetris');
     const scoreElement = document.getElementById('score');
     const nextPieceContainer = document.getElementById('nextPieceContainer');
     const music = document.getElementById('music');
     const musicButton = document.getElementById('musicButton');
     const scoreListElement = document.getElementById('scoreList');
-    const startGameButton = document.getElementById('startGameButton'); // Ahora sí estará definido
+    const startGameButton = document.getElementById('startGameButton');
+
+    // ========================================================
+    // AÑADE ESTAS LÍNEAS PARA DEPURAR (manténlas por ahora)
+    console.log("Referencia a startGameButton:", startGameButton);
+    console.log("Referencia a musicButton:", musicButton);
+    // ========================================================
 
     const COLS = 10;
     const ROWS = 18;
@@ -371,7 +296,6 @@
         }
     }
 
-    // --- Funciones del juego (definidas como const para claridad) ---
     const startGame = () => {
         if (gameInterval) clearInterval(gameInterval);
         isGameOver = false;
@@ -388,8 +312,6 @@
             musicButton.textContent = '🎵 Música (On)';
         }).catch(err => {
             console.log("No se pudo reproducir la música:", err);
-            // Esto es común si el usuario no ha interactuado antes con la página
-            // El navegador bloquea la reproducción automática de medios
         });
     };
 
@@ -403,20 +325,19 @@
         }
     };
 
-    // --- Asegurarse de que el DOM esté cargado antes de interactuar con él ---
     document.addEventListener('DOMContentLoaded', () => {
-        // Ahora podemos obtener las referencias a los botones de forma segura
-        // y adjuntar los event listeners.
-        if (startGameButton) { // Verificación adicional para evitar errores si el elemento no existe
+        console.log("DOMContentLoaded disparado.");
+
+        if (startGameButton) {
             startGameButton.addEventListener('click', startGame);
         } else {
-            console.error("El botón 'Empezar' no se encontró en el DOM.");
+            console.error("ERROR: El botón 'Empezar' (startGameButton) NO SE ENCONTRÓ en el DOM.");
         }
 
-        if (musicButton) { // Verificación adicional
+        if (musicButton) {
             musicButton.addEventListener('click', toggleMusic);
         } else {
-            console.error("El botón 'Música' no se encontró en el DOM.");
+            console.error("ERROR: El botón 'Música' (musicButton) NO SE ENCONTRÓ en el DOM.");
         }
 
         document.addEventListener('keydown', (e) => {
@@ -427,7 +348,6 @@
             if (e.key === 'ArrowUp') rotatePiece();
         });
 
-        // Inicializar el tablero y cargar puntuaciones al cargar la página
         createBoard();
         updateHighScoresDisplayFirebase();
     });
