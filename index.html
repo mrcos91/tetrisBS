@@ -42,7 +42,7 @@
     .O { background-color: #f1c40f; }
     .S { background-color: #2ecc71; }
     .T { background-color: #9b59b6; }
-    .Z { background-color: #1c7c3c; } /* He cambiado el color de la pieza Z para que sea distinto al rojo */
+    .Z { background-color: #e74c3c; }
     #nextPieceContainer {
       display: grid;
       grid-template-columns: repeat(4, 30px);
@@ -137,20 +137,22 @@
       storageBucket: "tetris-43965.firebasestorage.app",
       messagingSenderId: "783068667364",
       appId: "1:783068667364:web:0aaeda387c7d48be60bbf1",
-      measurementId: "G-VJ9KVXW66H" // Aunque no lo uses, es parte de la configuración
+      measurementId: "G-VJ9KVXW66H"
     };
 
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app); // Inicializa Firestore
+    const db = getFirestore(app);
 
+    // Definir las constantes globales para los elementos del DOM fuera del DOMContentLoaded
+    // para que sean accesibles en todo el script del módulo una vez inicializados.
     const boardElement = document.getElementById('tetris');
     const scoreElement = document.getElementById('score');
     const nextPieceContainer = document.getElementById('nextPieceContainer');
     const music = document.getElementById('music');
     const musicButton = document.getElementById('musicButton');
     const scoreListElement = document.getElementById('scoreList');
-    const startGameButton = document.getElementById('startGameButton'); // Nuevo: Referencia al botón Empezar
+    const startGameButton = document.getElementById('startGameButton'); // Ahora sí estará definido
 
     const COLS = 10;
     const ROWS = 18;
@@ -369,9 +371,7 @@
         }
     }
 
-    // Funciones que deben ser accesibles globalmente por los eventos onclick del HTML
-    // OJO: Se ha quitado 'window.' de las definiciones originales en las funciones,
-    // y se asignan al objeto window aquí. Esto es una forma más limpia y clara.
+    // --- Funciones del juego (definidas como const para claridad) ---
     const startGame = () => {
         if (gameInterval) clearInterval(gameInterval);
         isGameOver = false;
@@ -380,15 +380,16 @@
         scoreElement.textContent = score;
         currentPiece = newPiece();
         nextPiece = newPiece();
-        draw(); drawNextPiece();
+        draw();
+        drawNextPiece();
         gameInterval = setInterval(gameLoop, 800);
 
         music.play().then(() => {
             musicButton.textContent = '🎵 Música (On)';
         }).catch(err => {
             console.log("No se pudo reproducir la música:", err);
-            // Esto puede ocurrir si el navegador bloquea la reproducción automática sin interacción del usuario
-            // Puedes añadir un mensaje al usuario para que haga clic en el botón de música
+            // Esto es común si el usuario no ha interactuado antes con la página
+            // El navegador bloquea la reproducción automática de medios
         });
     };
 
@@ -402,22 +403,34 @@
         }
     };
 
-    // Asignar las funciones a los eventos directamente en JavaScript
-    // en lugar de usar onclick en el HTML. Esto es la mejor práctica para módulos.
-    startGameButton.addEventListener('click', startGame);
-    musicButton.addEventListener('click', toggleMusic);
+    // --- Asegurarse de que el DOM esté cargado antes de interactuar con él ---
+    document.addEventListener('DOMContentLoaded', () => {
+        // Ahora podemos obtener las referencias a los botones de forma segura
+        // y adjuntar los event listeners.
+        if (startGameButton) { // Verificación adicional para evitar errores si el elemento no existe
+            startGameButton.addEventListener('click', startGame);
+        } else {
+            console.error("El botón 'Empezar' no se encontró en el DOM.");
+        }
 
+        if (musicButton) { // Verificación adicional
+            musicButton.addEventListener('click', toggleMusic);
+        } else {
+            console.error("El botón 'Música' no se encontró en el DOM.");
+        }
 
-    document.addEventListener('keydown', (e) => {
-        if (isGameOver) return;
-        if (e.key === 'ArrowLeft') movePiece(-1, 0);
-        if (e.key === 'ArrowRight') movePiece(1, 0);
-        if (e.key === 'ArrowDown') movePiece(0, 1);
-        if (e.key === 'ArrowUp') rotatePiece();
+        document.addEventListener('keydown', (e) => {
+            if (isGameOver) return;
+            if (e.key === 'ArrowLeft') movePiece(-1, 0);
+            if (e.key === 'ArrowRight') movePiece(1, 0);
+            if (e.key === 'ArrowDown') movePiece(0, 1);
+            if (e.key === 'ArrowUp') rotatePiece();
+        });
+
+        // Inicializar el tablero y cargar puntuaciones al cargar la página
+        createBoard();
+        updateHighScoresDisplayFirebase();
     });
-
-    createBoard();
-    updateHighScoresDisplayFirebase();
   </script>
 </body>
 </html>
