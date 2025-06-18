@@ -42,7 +42,7 @@
     .O { background-color: #f1c40f; }
     .S { background-color: #2ecc71; }
     .T { background-color: #9b59b6; }
-    .Z { background-color: #e74c3c; }
+    .Z { background-color: #1c7c3c; } /* He cambiado el color de la pieza Z para que sea distinto al rojo */
     #nextPieceContainer {
       display: grid;
       grid-template-columns: repeat(4, 30px);
@@ -105,8 +105,8 @@
     <p>Puntaje: <span id="score">0</span></p>
     <div id="tetris"></div>
     <div>
-        <button onclick="startGame()">Empezar</button>
-        <button id="musicButton" onclick="toggleMusic()">🎵 Música (Off)</button>
+        <button id="startGameButton">Empezar</button>
+        <button id="musicButton">🎵 Música (Off)</button>
     </div>
   </div>
 
@@ -150,6 +150,7 @@
     const music = document.getElementById('music');
     const musicButton = document.getElementById('musicButton');
     const scoreListElement = document.getElementById('scoreList');
+    const startGameButton = document.getElementById('startGameButton'); // Nuevo: Referencia al botón Empezar
 
     const COLS = 10;
     const ROWS = 18;
@@ -328,10 +329,8 @@
         clearInterval(gameInterval);
         isGameOver = true;
         alert(`¡Juego Terminado! Tu puntuación fue: ${score}`);
-        saveScoreFirebase(); // Llama a la función para guardar en Firebase
+        saveScoreFirebase();
     }
-
-    // --- Funciones para Firebase ---
 
     async function saveScoreFirebase() {
         const name = prompt("¡Juego terminado! Escribe tu nombre:", "Jugador Anónimo");
@@ -344,14 +343,14 @@
                 timestamp: new Date()
             });
             console.log("Puntuación guardada en Firebase!");
-            updateHighScoresDisplayFirebase(); // Actualiza la lista de puntuaciones
+            updateHighScoresDisplayFirebase();
         } catch (e) {
             console.error("Error al añadir la puntuación: ", e);
         }
     }
 
     async function updateHighScoresDisplayFirebase() {
-        scoreListElement.innerHTML = ''; // Limpia la lista existente
+        scoreListElement.innerHTML = '';
         try {
             const q = query(collection(db, "scores"), orderBy("score", "desc"), limit(10));
             const querySnapshot = await getDocs(q);
@@ -370,9 +369,10 @@
         }
     }
 
-    // --- Fin de funciones para Firebase ---
-
-    window.startGame = function () {
+    // Funciones que deben ser accesibles globalmente por los eventos onclick del HTML
+    // OJO: Se ha quitado 'window.' de las definiciones originales en las funciones,
+    // y se asignan al objeto window aquí. Esto es una forma más limpia y clara.
+    const startGame = () => {
         if (gameInterval) clearInterval(gameInterval);
         isGameOver = false;
         createBoard();
@@ -383,15 +383,16 @@
         draw(); drawNextPiece();
         gameInterval = setInterval(gameLoop, 800);
 
-        // Reproducir música al iniciar
         music.play().then(() => {
             musicButton.textContent = '🎵 Música (On)';
         }).catch(err => {
             console.log("No se pudo reproducir la música:", err);
+            // Esto puede ocurrir si el navegador bloquea la reproducción automática sin interacción del usuario
+            // Puedes añadir un mensaje al usuario para que haga clic en el botón de música
         });
     };
 
-    window.toggleMusic = function () {
+    const toggleMusic = () => {
         if (music.paused) {
             music.play();
             musicButton.textContent = '🎵 Música (On)';
@@ -400,6 +401,12 @@
             musicButton.textContent = '🎵 Música (Off)';
         }
     };
+
+    // Asignar las funciones a los eventos directamente en JavaScript
+    // en lugar de usar onclick en el HTML. Esto es la mejor práctica para módulos.
+    startGameButton.addEventListener('click', startGame);
+    musicButton.addEventListener('click', toggleMusic);
+
 
     document.addEventListener('keydown', (e) => {
         if (isGameOver) return;
@@ -410,7 +417,7 @@
     });
 
     createBoard();
-    updateHighScoresDisplayFirebase(); // Carga las puntuaciones al iniciar
+    updateHighScoresDisplayFirebase();
   </script>
 </body>
 </html>
