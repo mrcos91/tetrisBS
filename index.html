@@ -125,10 +125,15 @@
     <source src="https://cdn.pixabay.com/download/audio/2024/01/12/audio_eb99a44c6a.mp3?filename=tetris-theme-korobeiniki-rearranged-arr-for-strings-185592.mp3" type="audio/mpeg">
   </audio>
 
-  <script type="module">
-    import { initializeApp } from "firebase/app";
-    import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs } from "firebase/firestore";
+  <script type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
+  <script type="module">
+    // Tus módulos de Firebase ya no se importan aquí,
+    // ya que se cargan globalmente a través de las etiquetas script de CDN.
+    // Ahora puedes acceder a firebase.initializeApp, firebase.firestore, etc.
+
+    // Your web app's Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyAV8mEuG_0wNNDI9TJWRkZQQbASuQGWaIQ",
       authDomain: "tetris-43965.firebaseapp.com",
@@ -139,8 +144,10 @@
       measurementId: "G-VJ9KVXW66H"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    // Initialize Firebase
+    // Accede a initializeApp y getFirestore desde el objeto global 'firebase'
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore(); // Usa firebase.firestore() en lugar de getFirestore(app) para la versión compat
 
     const boardElement = document.getElementById('tetris');
     const scoreElement = document.getElementById('score');
@@ -335,7 +342,8 @@
         if (!name) return;
 
         try {
-            await addDoc(collection(db, "scores"), {
+            // Usa db.collection y .add para la versión compat
+            await db.collection("scores").add({
                 name: name,
                 score: score,
                 timestamp: new Date()
@@ -350,10 +358,10 @@
     async function updateHighScoresDisplayFirebase() {
         scoreListElement.innerHTML = '';
         try {
-            const q = query(collection(db, "scores"), orderBy("score", "desc"), limit(10));
-            const querySnapshot = await getDocs(q);
+            // Usa db.collection y .orderBy y .limit para la versión compat
+            const snapshot = await db.collection("scores").orderBy("score", "desc").limit(10).get();
             let scores = [];
-            querySnapshot.forEach((doc) => {
+            snapshot.forEach((doc) => {
                 scores.push(doc.data());
             });
 
@@ -399,14 +407,10 @@
     document.addEventListener('DOMContentLoaded', () => {
         if (startGameButton) {
             startGameButton.addEventListener('click', startGame);
-        } else {
-            console.error("El botón 'Empezar' no se encontró en el DOM.");
         }
 
         if (musicButton) {
             musicButton.addEventListener('click', toggleMusic);
-        } else {
-            console.error("El botón 'Música' no se encontró en el DOM.");
         }
 
         document.addEventListener('keydown', (e) => {
